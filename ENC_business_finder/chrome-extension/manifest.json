@@ -1,0 +1,23 @@
+{
+  "manifest_version": 2,
+
+  "name": "ENC Business Finder v02",
+  "description": "Send emails to local businesses of a certain type",
+  "version": "2",
+
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+  "web_accessible_resources": [
+    "images/*.png",
+    "style/popup.css",
+    "script/popup.js",
+    "templates/*"
+  ],
+  "background": {
+    "scripts" : ["script/popup.js"]
+},
+  "permissions": [
+    "activeTab"
+  ]
+}
