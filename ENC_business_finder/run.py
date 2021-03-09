@@ -15,6 +15,9 @@ from flask import render_template
 from werkzeug import secure_filename
 import pprint
 import json
+from json import dumps
+from flask import make_response
+
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
@@ -154,8 +157,7 @@ def reseller_websites(conn):
             print(row)
             websites.append(row[0])
     return websites
-from json import dumps
-from flask import make_response
+
 
 def jsonify(status=200, indent=4, sort_keys=True, **kwargs):
     response = make_response(dumps(dict(**kwargs), indent=indent, sort_keys=sort_keys))
@@ -223,7 +225,7 @@ def resellers(conn):
 '''
 Send get emails from the websites' contact form. This is probably the most important function.
 
-How: 
+How: look for the contact form via url name ("contact" in the title), then scrape it.
 
 '''
 def web_2_email(pump_, conn, websites_data):
