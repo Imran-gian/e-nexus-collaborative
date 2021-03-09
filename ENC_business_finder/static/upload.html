@@ -3,7 +3,10 @@
       <form action = "http://localhost:5003/uploader" method = "POST" 
          enctype = "multipart/form-data">
          <input type = "file" name = "file" />
-         <input type = "submit"/>
+         <input type = "submit" value="Upload to Business Database"/>
+      </form>
+      <form action="/sql_dump.csv">
+        <input type="submit" value="Export Business Database (MailChimp Import)" />
       </form>
    </body>
 </html>

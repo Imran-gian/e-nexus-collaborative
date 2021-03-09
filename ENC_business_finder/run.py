@@ -311,7 +311,7 @@ Create the upload page.
 How: serve an html file.
 
 '''
-@app.route('/upload', methods = ['GET', 'POST'])
+@app.route('/', methods = ['GET', 'POST'])
 def upload_page():
    return app.send_static_file('upload.html')
 	
@@ -442,7 +442,7 @@ Export all the business data into a neat CSV that you can import to MailChimp to
 How: Dump the root table in the database and then parse to make a readable CSV.
 
 '''
-@app.route('/sql_dump', methods = ['GET'])
+@app.route('/sql_dump.csv', methods = ['GET'])
 def sql_dump():
     pump = Pump()
     data = pump.sql_dump()
@@ -450,7 +450,7 @@ def sql_dump():
     data_file = open('static/data_file.csv', 'w+') 
   
     # create the csv writer object 
-    csv_writer = csv.writer(data_file) 
+    csv_writer = csv.writer(data_file, delimiter=',') 
   
     # Counter variable used for writing  
     # headers to the CSV file 
@@ -464,7 +464,13 @@ def sql_dump():
             count += 1
   
         # Writing data of CSV file 
-        csv_writer.writerow(emp) 
+        row = []
+        for c in emp:
+            print(c)
+            d = str(c).replace(",", " ")
+            row.append(d)
+            print(d)
+        csv_writer.writerow(row) 
   
     data_file.close() 
     return app.send_static_file('data_file.csv')
