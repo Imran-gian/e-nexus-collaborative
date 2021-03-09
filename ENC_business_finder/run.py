@@ -216,7 +216,18 @@ def resellers(conn):
             print("...",row)
             websites.append(row)
     return websites
+
+
+
+
+'''
+Send get emails from the websites' contact form. This is probably the most important function.
+
+How: 
+
+'''
 def web_2_email(pump_, conn, websites_data):
+    # read data from business database
     emails = []
     for data in websites_data:
         website = data[0]
@@ -228,6 +239,11 @@ def web_2_email(pump_, conn, websites_data):
         else:
             continue
         email = []
+        ''' Find any emails in the contact forms.
+        - look for an email.
+        - if the email does not exist, then just add a placeholder of value "email"
+        - if the email does exist, then add it to the list of emails.
+        '''
         try:
             email = search_email(website)
         except:
@@ -240,14 +256,21 @@ def web_2_email(pump_, conn, websites_data):
         send_email_(pump_, bname, country, website, email)
         emails.append(email)
     return emails
+
+'''
+Send the emails to any businesses in the database.
+
+'''
 def send_email_(pump_, bname, country, website, receiver_email):
     #receiver_email = next(iter(receiver_email))
     #receiver_email = "garadadil@gmail.com"
     
     try:
+        # use your email service provider's servers to send a message automatically to recipient.
         send_email.send_email(receiver_email, bname, country)
     except:
         pass
+    # Update the database to let it know that an email was sent to a certain recipient.
     pump_.email_sent(website,1)
     return "email sent successfully to: " +  str(receiver_email)
 
@@ -280,17 +303,35 @@ CREATE TABLE IF NOT EXISTS bdata (
 from io import StringIO
 import csv
 from flask import make_response
+'''
+Create the upload page.
 
+How: serve an html file.
+
+'''
 @app.route('/upload', methods = ['GET', 'POST'])
 def upload_page():
    return app.send_static_file('upload.html')
 	
+'''
+upload the file to populate the sql databse.
+
+How: Read the business names (bname field) and the website from the output FROM THE CHROME EXTENSION.
+Then add it to the sql database. 
+
+'''
 @app.route('/uploader', methods = ['GET', 'POST'])
 def upload_file():
    if request.method == 'POST':
+
+      # Just read the json file (the output from the ENC chrome extension)
+
       f = request.files['file']
       fname = secure_filename(f.filename)
       f.save(fname)
+
+      # Time to parse the json from the input file
+
       with open(fname) as f:
         d = json.loads(f.read())
         ret = ""
@@ -320,20 +361,37 @@ def upload_file():
             except Exception as e:
                 print("ERROR: ", e)
                 continue
+            
+            # add fields to touples that are going to be used in the sql database.
             store = (web, bname, 'country',0,0,ems, 0,0)
             biz = (web, bname, review,cat, ems)
             ret += '<br>Business: '+str(biz)
+
+            # open the sql database and add data from the input file.
             pump = Pump()
             pump.create_store_(store)
             pump.create_biz_(biz)
 
         return ret
       return 'file uploaded successfully'
-@app.route('/home', methods = ['GET', 'POST'])
-def home():
-    return app.send_static_file('index.html')
+
+'''
+Create a reseller. This is the "seller" in the collaboration agreement between two businesses
+
+
+How: put all parameters into a touple and append that touple to the appropriate database
+
+params: 
+- website: the website of the business found on google maps (required)
+- bname: the actual name of the business .. (required)
+- country: the country .. (optional)
+- lat: the latitude .. (optional)
+- long: the longitude .. (optional)
+
+
+'''
 @app.route('/new_reseller', methods = ['GET'])
-def hello():
+def new_reseller():
     pump = Pump()
     website = str(request.args.get('website').strip())
     bname = str(request.args.get('bname').strip())
@@ -341,18 +399,47 @@ def hello():
     lat = float(request.args.get('lat').strip())
     lon = float(request.args.get('long').strip())
     return str(pump.sql_in(website, bname, country, lat, lat))
+'''
+Update whether or not the email has been sent.
+
+
+How: put all parameters into a touple and append that touple to the appropriate database
+
+params: 
+- website: the website of the business found on google maps (required)
+- status_code: Whether or not the email has been sent. (required)
+'''
 @app.route('/email_sent', methods = ['GET'])
 def email_sent():
     pump = Pump()
     website = str(request.args.get('website').strip())
     status_code = int(request.args.get('status_code').strip())
     return str(pump.email_sent(website, status_code))
+
+'''
+Update how positive (or negative) the email response was (from the other business)
+
+
+How: put all parameters into a touple and append that touple to the appropriate database
+
+params: 
+- website: the website of the business found on google maps (required)
+- sentiment: The positivity index of the email response. (required)
+'''
 @app.route('/sentiment', methods = ['GET'])
 def sentiment():
     pump = Pump()
     website = str(request.args.get('website').strip())
     sentiment = int(request.args.get('sentiment').strip())
     return str(pump.sentiment(website, sentiment))
+
+'''
+Export all the business data into a neat CSV that you can import to MailChimp to have all the businesses recieve your email campaign.
+
+
+How: Dump the root table in the database and then parse to make a readable CSV.
+
+'''
 @app.route('/sql_dump', methods = ['GET'])
 def sql_dump():
     pump = Pump()
@@ -379,13 +466,26 @@ def sql_dump():
   
     data_file.close() 
     return app.send_static_file('data_file.csv')
+
+'''
+Send a collaboration invitation to all the businesses in the database.
+
+
+How: Depreciated. You should use MailChimp to do this and this program exports to a csv as for MailChimp as well.
+
+'''
+
 @app.route('/sendall', methods = ['GET'])
 def sendall():
     pump = Pump()
     return str(pump.sendall())
 
 
+'''
+This is just a simple class that takes any arguments and outputs them into their appropriate SQL table and column.
 
+
+'''
 class Pump:
     def create_biz_(self, biz):
         create_biz(self.conn, biz)
