@@ -277,7 +277,9 @@ CREATE TABLE IF NOT EXISTS bdata (
 
 
 #exec_sql(conn, "drop table reseller")
-
+from io import StringIO
+import csv
+from flask import make_response
 
 @app.route('/upload', methods = ['GET', 'POST'])
 def upload_page():
@@ -354,7 +356,29 @@ def sentiment():
 @app.route('/sql_dump', methods = ['GET'])
 def sql_dump():
     pump = Pump()
-    return str(pump.sql_dump())
+    data = pump.sql_dump()
+    # now we will open a file for writing 
+    data_file = open('static/data_file.csv', 'w+') 
+  
+    # create the csv writer object 
+    csv_writer = csv.writer(data_file) 
+  
+    # Counter variable used for writing  
+    # headers to the CSV file 
+    count = 0
+  
+    for emp in data: 
+        if count == 0: 
+            # Writing headers of CSV file 
+            header = emp
+            csv_writer.writerow(header) 
+            count += 1
+  
+        # Writing data of CSV file 
+        csv_writer.writerow(emp) 
+  
+    data_file.close() 
+    return app.send_static_file('data_file.csv')
 @app.route('/sendall', methods = ['GET'])
 def sendall():
     pump = Pump()
@@ -414,7 +438,7 @@ class Pump:
         #store_0 = ('https://website.com', 'business', 'Country', 0, 0, 'email',0,0)
         #create_store(self.conn, store_0)
 if __name__ == '__main__':
-   
+    
     
     pump = Pump()
     app.run(host='0.0.0.0', port=5003)
