@@ -59,7 +59,7 @@ def search_email(user_url):
                 elif not link.startswith('http'):
                     link = path + link
                 if not link in urls and not link in scraped_urls:
-                     if link.startswith(user_url) and not link.endswith('.pdf') and 'contact' in link.lower():
+                     if link.startswith(user_url) and not link.endswith('.pdf') and ('contact' in link.lower()):
                          urls.append(link)
             for mail in new_emails:
                 if(".co" in mail):
