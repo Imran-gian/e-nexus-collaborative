@@ -342,15 +342,15 @@ def upload_file():
             try:
                 bname = site['bname'].split("\n")[0] 
             except:
-                pass
+                bname = "name"
             try:
                 review = site['bname'].split("\n")[1] 
             except:
-                pass
+                review = "review"
             try:
                 cat = site['bname'].split("\n")[2] 
             except:
-                pass
+                cat = "category"
     
             print("evaluating: '", web)
             ems = ''
